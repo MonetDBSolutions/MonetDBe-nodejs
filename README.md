@@ -23,5 +23,11 @@ $ export CFLAGS="-w"
 $ emcmake cmake .. 
 $ cd tools/monetdbe
 $ make
-$ emcc libmonetdbe.a -o monetdbe.html
+$ emcc \
+    libmonetdbe.a \
+    ../../common/stream/libstream.a \
+    ../../sql/backends/monet5/libmonetdbsql.a \
+    ../../monetdb5/tools/libmonetdb5.a \
+    -o monetdb.html
 ```
+

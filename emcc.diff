@@ -1,6 +1,6 @@
 diff -r a56a47e8992d CMakeLists.txt
 --- a/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
-+++ b/CMakeLists.txt	Wed Jun 09 15:35:11 2021 +0200
++++ b/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
 @@ -74,7 +74,7 @@
      set(CMAKE_EXTRA_INCLUDE_FILES "winsock.h")
    endif()
@@ -10,9 +10,68 @@ diff -r a56a47e8992d CMakeLists.txt
  
  monetdb_configure_crypto()
  monetdb_configure_sizes()
+@@ -125,17 +125,6 @@
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb>)
+ 
+-install(TARGETS
+-  monetdb_config_header
+-  EXPORT monetdb_config_headerTargets
+-  COMPONENT monetdbdev)
+-
+-install(EXPORT monetdb_config_headerTargets
+-  FILE monetdb_config_headerTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT monetdbdev)
+-
+ install(FILES
+   ${CMAKE_CURRENT_BINARY_DIR}/monetdb_config.h
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/monetdb
+diff -r a56a47e8992d clients/mapilib/CMakeLists.txt
+--- a/clients/mapilib/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/clients/mapilib/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ add_library(mapi
+-  SHARED)
++  STATIC)
+ 
+ # We need to add the public library twice to the target sources, once for
+ # the build interface and once for the install interface. This is because
+@@ -57,28 +57,6 @@
+     COMPONENT clientdev)
+ endif()
+ 
+-install(TARGETS
+-  mapi
+-  EXPORT mapiTargets
+-  RUNTIME
+-  DESTINATION ${CMAKE_INSTALL_BINDIR}
+-  COMPONENT client
+-  LIBRARY
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-  COMPONENT client
+-  NAMELINK_COMPONENT clientdev
+-  ARCHIVE
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-  COMPONENT client
+-  PUBLIC_HEADER
+-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/monetdb
+-  COMPONENT clientdev
+-  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ 
+-install(EXPORT mapiTargets
+-  FILE mapiTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT clientdev)
+ 
+ # vim: set ts=2:sw=2:et
 diff -r a56a47e8992d clients/mapilib/mapi.c
 --- a/clients/mapilib/mapi.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/clients/mapilib/mapi.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/clients/mapilib/mapi.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -3709,7 +3709,7 @@
  		}
  		mid->blk.buf[mid->blk.end + len] = 0;
@@ -22,9 +81,89 @@ diff -r a56a47e8992d clients/mapilib/mapi.c
  			printf("text:%s\n", mid->blk.buf + mid->blk.end);
  		}
  		if (len == 0) {	/* add prompt */
+diff -r a56a47e8992d clients/odbc/driver/CMakeLists.txt
+--- a/clients/odbc/driver/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/clients/odbc/driver/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -11,7 +11,7 @@
+ endif()
+ 
+ add_library(MonetODBC
+-  MODULE)
++  STATIC)
+ 
+ target_sources(MonetODBC
+   PRIVATE
+diff -r a56a47e8992d clients/odbc/setup/CMakeLists.txt
+--- a/clients/odbc/setup/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/clients/odbc/setup/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ add_library(MonetODBCs
+-  MODULE)
++STATIC)
+ 
+ target_sources(MonetODBCs
+   PRIVATE
+diff -r a56a47e8992d clients/odbc/winsetup/CMakeLists.txt
+--- a/clients/odbc/winsetup/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/clients/odbc/winsetup/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ add_library(MonetODBCs
+-  MODULE)
++STATIC)
+ 
+ target_sources(MonetODBCs
+   PRIVATE
+diff -r a56a47e8992d common/stream/CMakeLists.txt
+--- a/common/stream/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/common/stream/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -13,7 +13,7 @@
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb/stream_socket.h>)
+ 
+ add_library(stream
+-  SHARED)
++  STATIC)
+ 
+ target_sources(stream
+   PRIVATE
+@@ -135,9 +135,3 @@
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/monetdb
+   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+   COMPONENT streamdev)
+-
+-install(EXPORT streamTargets
+-  FILE streamTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT streamdev)
+diff -r a56a47e8992d gdk/CMakeLists.txt
+--- a/gdk/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/gdk/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -30,7 +30,7 @@
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb/gdk_calc.h>
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb/gdk_cand.h>)
+ 
+-add_library(bat SHARED)
++add_library(bat STATIC)
+ 
+ target_sources(bat
+   PRIVATE
+@@ -142,9 +142,3 @@
+   COMPONENT monetdbdev
+   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+   COMPONENT monetdbdev)
+-
+-install(EXPORT gdkTargets
+-  FILE gdkTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT monetdbdev)
 diff -r a56a47e8992d gdk/gdk.h
 --- a/gdk/gdk.h	Tue Jun 08 22:11:45 2021 +0200
-+++ b/gdk/gdk.h	Wed Jun 09 15:35:11 2021 +0200
++++ b/gdk/gdk.h	Wed Jun 09 15:59:48 2021 +0200
 @@ -453,6 +453,9 @@
  typedef int64_t lng;
  typedef uint64_t ulng;
@@ -37,7 +176,7 @@ diff -r a56a47e8992d gdk/gdk.h
  #define OIDFMT		"%zu"
 diff -r a56a47e8992d gdk/gdk_logger_old.c
 --- a/gdk/gdk_logger_old.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/gdk/gdk_logger_old.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/gdk/gdk_logger_old.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -252,7 +252,7 @@
  
  	if ((nr = mnstr_read(l->log, buf, 1, len)) != (ssize_t) len) {
@@ -49,7 +188,7 @@ diff -r a56a47e8992d gdk/gdk_logger_old.c
  	}
 diff -r a56a47e8992d gdk/gdk_storage.c
 --- a/gdk/gdk_storage.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/gdk/gdk_storage.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/gdk/gdk_storage.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -463,19 +463,19 @@
  					    (unsigned) MIN(1 << 30, size));
  				if (ret < 0) {
@@ -90,9 +229,45 @@ diff -r a56a47e8992d gdk/gdk_storage.c
  #endif
  
  					if (n <= 0)
+diff -r a56a47e8992d geom/monetdb5/CMakeLists.txt
+--- a/geom/monetdb5/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/geom/monetdb5/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ if(GEOS_FOUND)
+-  add_library(geomodule MODULE)
++  add_library(geomodule STATIC)
+ 
+   set(include_sql_files
+     40_geom)
+diff -r a56a47e8992d monetdb5/extras/mal_optimizer_template/CMakeLists.txt
+--- a/monetdb5/extras/mal_optimizer_template/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/extras/mal_optimizer_template/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -6,7 +6,7 @@
+ # Copyright 1997 - July 2008 CWI, August 2008 - 2021 MonetDB B.V.
+ #]]
+ 
+-add_library(opt_sql_append MODULE)
++add_library(opt_sql_append STATIC)
+ 
+ target_sources(opt_sql_append
+   PRIVATE
+diff -r a56a47e8992d monetdb5/extras/rapi/CMakeLists.txt
+--- a/monetdb5/extras/rapi/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/extras/rapi/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ if(LIBR_FOUND)
+-  add_library(rapi MODULE)
++  add_library(rapi STATIC)
+ 
+   target_sources(rapi
+     PRIVATE
 diff -r a56a47e8992d monetdb5/mal/mal_debugger.c
 --- a/monetdb5/mal/mal_debugger.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/monetdb5/mal/mal_debugger.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/monetdb5/mal/mal_debugger.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -226,7 +226,7 @@
  static inline char *
  local_itoa(ssize_t i, char *buf)
@@ -102,9 +277,182 @@ diff -r a56a47e8992d monetdb5/mal/mal_debugger.c
  	return buf;
  }
  static inline char *
+diff -r a56a47e8992d monetdb5/modules/kernel/CMakeLists.txt
+--- a/monetdb5/modules/kernel/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/modules/kernel/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ add_library(kernel OBJECT)
+-add_library(microbenchmark MODULE)
++add_library(microbenchmark STATIC)
+ 
+ target_sources(kernel
+   PRIVATE
+diff -r a56a47e8992d monetdb5/scheduler/CMakeLists.txt
+--- a/monetdb5/scheduler/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/scheduler/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -6,7 +6,7 @@
+ # Copyright 1997 - July 2008 CWI, August 2008 - 2021 MonetDB B.V.
+ #]]
+ 
+-add_library(run_adder MODULE)
++add_library(run_adder STATIC)
+ target_sources(run_adder
+   PRIVATE
+   run_adder.c)
+@@ -33,7 +33,7 @@
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/monetdb5
+   COMPONENT run_adder)
+ 
+-add_library(run_isolate MODULE)
++add_library(run_isolate STATIC)
+ target_sources(run_isolate
+   PRIVATE
+   run_isolate.c)
+@@ -59,7 +59,7 @@
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/monetdb5
+   COMPONENT run_isolate)
+ 
+-add_library(run_memo MODULE)
++add_library(run_memo STATIC)
+ target_sources(run_memo
+   PRIVATE
+   run_memo.c)
+diff -r a56a47e8992d monetdb5/tools/CMakeLists.txt
+--- a/monetdb5/tools/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/tools/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -6,7 +6,7 @@
+ # Copyright 1997 - July 2008 CWI, August 2008 - 2021 MonetDB B.V.
+ #]]
+ 
+-add_library(monetdb5 SHARED
++add_library(monetdb5 STATIC
+   $<TARGET_OBJECTS:mal>
+   $<TARGET_OBJECTS:atoms>
+   $<TARGET_OBJECTS:malmodules>
+@@ -69,11 +69,3 @@
+   PUBLIC_HEADER
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/monetdb
+   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+-
+-install(EXPORT monetdb5Targets
+-  FILE monetdb5Targets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT serverdev)
+-
+-# vim: set ts=2:sw=2:et
+diff -r a56a47e8992d sql/backends/monet5/CMakeLists.txt
+--- a/sql/backends/monet5/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -10,8 +10,7 @@
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sql_import.h>
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb/sql_import.h>)
+ 
+-#add_library(sql MODULE)
+-add_library(sql SHARED)
++add_library(sql STATIC)
+ 
+ set(include_sql_files
+   12_url
+@@ -149,9 +148,3 @@
+   INTERFACE
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+   $<INSTALL_INTERFACE:${INCLUDEDIR}/monetdb>)
+-
+-install(EXPORT sqlTargets
+-  FILE sqlTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT monetdbdev)
+diff -r a56a47e8992d sql/backends/monet5/UDF/capi/CMakeLists.txt
+--- a/sql/backends/monet5/UDF/capi/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/UDF/capi/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -8,7 +8,7 @@
+ 
+ if(CINTEGRATION)
+   # TODO add code too regenerate the cheader.text.h file
+-  add_library(capi MODULE)
++  add_library(capi STATIC)
+ 
+   target_sources(capi
+     PRIVATE
+diff -r a56a47e8992d sql/backends/monet5/UDF/pyapi3/CMakeLists.txt
+--- a/sql/backends/monet5/UDF/pyapi3/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/UDF/pyapi3/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ if(HAVE_LIBPY3)
+-  add_library(pyapi3 MODULE)
++  add_library(pyapi3 STATIC)
+ 
+   target_sources(pyapi3
+     PRIVATE
+diff -r a56a47e8992d sql/backends/monet5/UDF/udf/CMakeLists.txt
+--- a/sql/backends/monet5/UDF/udf/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/UDF/udf/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -6,7 +6,7 @@
+ # Copyright 1997 - July 2008 CWI, August 2008 - 2021 MonetDB B.V.
+ #]]
+ 
+-add_library(udf MODULE)
++add_library(udf STATIC)
+ 
+ set(include_sql_files
+   80_udf)
+diff -r a56a47e8992d sql/backends/monet5/generator/CMakeLists.txt
+--- a/sql/backends/monet5/generator/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/generator/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -6,7 +6,7 @@
+ # Copyright 1997 - July 2008 CWI, August 2008 - 2021 MonetDB B.V.
+ #]]
+ 
+-add_library(generator MODULE)
++add_library(generator STATIC)
+ 
+ set(include_sql_files
+   90_generator)
+diff -r a56a47e8992d sql/backends/monet5/vaults/fits/CMakeLists.txt
+--- a/sql/backends/monet5/vaults/fits/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/vaults/fits/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ if(HAVE_FITS)
+-  add_library(fits MODULE)
++  add_library(fits STATIC)
+ 
+   set(include_sql_files
+     72_fits)
+diff -r a56a47e8992d sql/backends/monet5/vaults/netcdf/CMakeLists.txt
+--- a/sql/backends/monet5/vaults/netcdf/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/vaults/netcdf/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -9,7 +9,7 @@
+ if(NETCDF_FOUND)
+   # the netcdf library is also called netcdf, so cmake gets confused.
+   # Give it another name
+-  add_library(netcdff MODULE)
++  add_library(netcdff STATIC)
+ 
+   set(include_sql_files
+     74_netcdf)
+diff -r a56a47e8992d sql/backends/monet5/vaults/shp/CMakeLists.txt
+--- a/sql/backends/monet5/vaults/shp/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/backends/monet5/vaults/shp/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -7,7 +7,7 @@
+ #]]
+ 
+ if(GDAL_FOUND)
+-  add_library(shp MODULE)
++  add_library(shp STATIC)
+ 
+   set(include_sql_files
+     75_shp)
 diff -r a56a47e8992d sql/server/sql_scan.c
 --- a/sql/server/sql_scan.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/sql/server/sql_scan.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/sql/server/sql_scan.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -943,7 +943,7 @@
  			utf8_putchar(lc, before_cur);
  		return scanner_token(lc, token);
@@ -125,7 +473,7 @@ diff -r a56a47e8992d sql/server/sql_scan.c
  
 diff -r a56a47e8992d sql/storage/store.c
 --- a/sql/storage/store.c	Tue Jun 08 22:11:45 2021 +0200
-+++ b/sql/storage/store.c	Wed Jun 09 15:35:11 2021 +0200
++++ b/sql/storage/store.c	Wed Jun 09 15:59:48 2021 +0200
 @@ -2269,7 +2269,7 @@
  
  	file_size = getFileSize(contents);
@@ -144,3 +492,25 @@ diff -r a56a47e8992d sql/storage/store.c
  			free(err);
  			goto end;
  		}
+diff -r a56a47e8992d tools/monetdbe/CMakeLists.txt
+--- a/tools/monetdbe/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/tools/monetdbe/CMakeLists.txt	Wed Jun 09 15:59:48 2021 +0200
+@@ -11,7 +11,7 @@
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/monetdbe.h>
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/monetdb/monetdbe.h>)
+ 
+-add_library(monetdbe SHARED)
++add_library(monetdbe STATIC)
+ 
+ add_compile_definitions(COMPILING_MONETDBE)
+ 
+@@ -91,9 +91,3 @@
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/monetdb
+   COMPONENT server
+   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+-
+-install(EXPORT monetdbeTargets
+-  FILE monetdbeTargets.cmake
+-  NAMESPACE MonetDB::
+-  DESTINATION ${EXPORT_TARGET_PATH}
+-  COMPONENT serverdev)
