@@ -1,0 +1,146 @@
+diff -r a56a47e8992d CMakeLists.txt
+--- a/CMakeLists.txt	Tue Jun 08 22:11:45 2021 +0200
++++ b/CMakeLists.txt	Wed Jun 09 15:35:11 2021 +0200
+@@ -74,7 +74,7 @@
+     set(CMAKE_EXTRA_INCLUDE_FILES "winsock.h")
+   endif()
+ endif()
+-set(CMAKE_REQUIRED_INCLUDES "/usr/include")
++#set(CMAKE_REQUIRED_INCLUDES "/usr/include")
+ 
+ monetdb_configure_crypto()
+ monetdb_configure_sizes()
+diff -r a56a47e8992d clients/mapilib/mapi.c
+--- a/clients/mapilib/mapi.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/clients/mapilib/mapi.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -3709,7 +3709,7 @@
+ 		}
+ 		mid->blk.buf[mid->blk.end + len] = 0;
+ 		if (mid->trace) {
+-			printf("got next block: length:%zd\n", len);
++			printf("got next block: length:%d\n", (int)len);
+ 			printf("text:%s\n", mid->blk.buf + mid->blk.end);
+ 		}
+ 		if (len == 0) {	/* add prompt */
+diff -r a56a47e8992d gdk/gdk.h
+--- a/gdk/gdk.h	Tue Jun 08 22:11:45 2021 +0200
++++ b/gdk/gdk.h	Wed Jun 09 15:35:11 2021 +0200
+@@ -453,6 +453,9 @@
+ typedef int64_t lng;
+ typedef uint64_t ulng;
+ 
++// #define SIZEOF_SIZE_T	((int) sizeof(size_t)
++//#define SIZEOF_INT	((int) sizeof(int)
++
+ #define SIZEOF_OID	SIZEOF_SIZE_T
+ typedef size_t oid;
+ #define OIDFMT		"%zu"
+diff -r a56a47e8992d gdk/gdk_logger_old.c
+--- a/gdk/gdk_logger_old.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/gdk/gdk_logger_old.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -252,7 +252,7 @@
+ 
+ 	if ((nr = mnstr_read(l->log, buf, 1, len)) != (ssize_t) len) {
+ 		buf[len - 1] = 0;
+-		TRC_CRITICAL(GDK, "couldn't read name (%s) %zd\n", buf, nr);
++		TRC_CRITICAL(GDK, "couldn't read name (%s) %d\n", buf, (int)nr);
+ 		GDKfree(buf);
+ 		return NULL;
+ 	}
+diff -r a56a47e8992d gdk/gdk_storage.c
+--- a/gdk/gdk_storage.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/gdk/gdk_storage.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -463,19 +463,19 @@
+ 					    (unsigned) MIN(1 << 30, size));
+ 				if (ret < 0) {
+ 					err = -1;
+-					GDKsyserror("GDKsave: error %zd"
++					GDKsyserror("GDKsave: error %d"
+ 						    " on: name=%s, ext=%s, "
+-						    "mode=%d\n", ret, nme,
++						    "mode=%d\n", (int)ret, nme,
+ 						    ext ? ext : "", (int) mode);
+ 					break;
+ 				}
+ 				size -= ret;
+ 				buf = (void *) ((char *) buf + ret);
+ 				TRC_DEBUG(IO_, "Write(fd %d, buf %p"
+-					  ", size %u) = %zd\n",
++					  ", size %u) = %d\n",
+ 					  fd, buf,
+ 					  (unsigned) MIN(1 << 30, size),
+-					  ret);
++					  (int)ret);
+ 			}
+ 			if (dosync && !(GDKdebug & NOSYNCMASK)
+ #if defined(NATIVE_WIN32)
+@@ -542,13 +542,13 @@
+ 				for (n_expected = (ssize_t) size; n_expected > 0; n_expected -= n) {
+ 					n = read(fd, dst, (unsigned) MIN(1 << 30, n_expected));
+ 					if (n < 0)
+-						GDKsyserror("GDKload: cannot read: name=%s, ext=%s, %zu bytes missing.\n", nme, ext ? ext : "", (size_t) n_expected);
++						GDKsyserror("GDKload: cannot read: name=%s, ext=%s, %u bytes missing.\n", nme, ext ? ext : "", (int) n_expected);
+ #ifndef __COVERITY__
+ 					/* Coverity doesn't seem to
+ 					 * recognize that we're just
+ 					 * printing the value of ptr,
+ 					 * not its contents */
+-					TRC_DEBUG(IO_, "read(dst %p, n_expected %zd, fd %d) = %zd\n", (void *)dst, n_expected, fd, n);
++					TRC_DEBUG(IO_, "read(dst %p, n_expected %d, fd %d) = %d\n", (void *)dst, (int)n_expected, fd, (int)n);
+ #endif
+ 
+ 					if (n <= 0)
+diff -r a56a47e8992d monetdb5/mal/mal_debugger.c
+--- a/monetdb5/mal/mal_debugger.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/monetdb5/mal/mal_debugger.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -226,7 +226,7 @@
+ static inline char *
+ local_itoa(ssize_t i, char *buf)
+ {
+-	snprintf(buf, 32, "%zd", i);
++	snprintf(buf, 32, "%d", (int)i);
+ 	return buf;
+ }
+ static inline char *
+diff -r a56a47e8992d sql/server/sql_scan.c
+--- a/sql/server/sql_scan.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/server/sql_scan.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -943,7 +943,7 @@
+ 			utf8_putchar(lc, before_cur);
+ 		return scanner_token(lc, token);
+ 	} else {
+-		(void)sql_error( c, 2, SQLSTATE(42000) "Unexpected symbol %lc", (wint_t) cur);
++		(void)sql_error( c, 2, SQLSTATE(42000) "Unexpected symbol %ulc", (wint_t) cur);
+ 		return LEX_ERROR;
+ 	}
+ }
+@@ -1136,7 +1136,7 @@
+ 			return scanner_token(lc, '|');
+ 		}
+ 	}
+-	(void)sql_error( c, 3, SQLSTATE(42000) "Unexpected symbol (%lc)", (wint_t) cur);
++	(void)sql_error( c, 3, SQLSTATE(42000) "Unexpected symbol (%ulc)", (wint_t) cur);
+ 	return LEX_ERROR;
+ }
+ 
+diff -r a56a47e8992d sql/storage/store.c
+--- a/sql/storage/store.c	Tue Jun 08 22:11:45 2021 +0200
++++ b/sql/storage/store.c	Wed Jun 09 15:35:11 2021 +0200
+@@ -2269,7 +2269,7 @@
+ 
+ 	file_size = getFileSize(contents);
+ 	if (file_size < size) {
+-		GDKerror("Have to copy %zd bytes but only %zd exist in %s", size, file_size, path);
++		GDKerror("Have to copy %d bytes but only %d exist in %s", (int)size, (int)file_size, path);
+ 		goto end;
+ 	}
+ 
+@@ -2292,7 +2292,7 @@
+ 		ssize_t nbytes = mnstr_read(contents, buf, 1, chunk);
+ 		if (nbytes != chunk) {
+ 			char *err = mnstr_error(contents);
+-			GDKerror("Read only %zd/%zd bytes of component %s: %s", nbytes, chunk, path, err);
++			GDKerror("Read only %d/%d bytes of component %s: %s", (int)nbytes, (int)chunk, path, err);
+ 			free(err);
+ 			goto end;
+ 		}
