@@ -23,11 +23,25 @@ $ export CFLAGS="-w"
 $ emcmake cmake .. 
 $ cd tools/monetdbe
 $ make
-$ emcc \
-    libmonetdbe.a \
-    ../../common/stream/libstream.a \
-    ../../sql/backends/monet5/libmonetdbsql.a \
-    ../../monetdb5/tools/libmonetdb5.a \
-    -o monetdb.html
 ```
+
+## compile example
+
+from this repo foldeR:
+
+```
+$ vi build.sh    # change path to monetdb build
+$ ./build.sh
+```
+
+
+## run example
+
+you can't run the example directly using a file:// path, you need a webserver.
+
+for example:
+```
+$ python3 -m http.server
+```
+
 

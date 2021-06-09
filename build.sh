@@ -1,5 +1,5 @@
 MONETDB=/home/gijs/Work/monetdb/MonetDB
-emcc -I${MONETDB}/tools/monetdbe/monetdbe.h -I${MONETDB}/build \
+emcc -O3 -I${MONETDB}/tools/monetdbe/ -I${MONETDB}/build \
     ${MONETDB}/build/monetdb5/tools/libmonetdb5.a             \
     ${MONETDB}/build//sql/server/libsqlserver.a                \
     ${MONETDB}/build/sql/common/libsqlcommon.a                \
